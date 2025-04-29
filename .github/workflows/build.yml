@@ -46,9 +46,9 @@ jobs:
           path: ./bin/*.apk
 
   ios_build:
-    runs-on: macos-latest
+      runs-on: macos-latest
 
-    steps:
+      steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -72,6 +72,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install cython
           pip install buildozer kivy
+          pip install pbxproj
           brew install autoconf automake
 
       - name: Prevent timeout during long build (keep-alive)
@@ -91,3 +92,4 @@ jobs:
 
       - name: Clean up (optional)
         run: buildozer ios clean
+
