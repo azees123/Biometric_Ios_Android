@@ -55,10 +55,10 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Install Buildozer in Python 3.9 environment
+    - name: Install Buildozer and dependencies
       run: |
         python3 -m pip install --upgrade pip setuptools
-        python3 -m pip install buildozer
+        python3 -m pip install Cython buildozer
 
     - name: Cache Buildozer dependencies
       uses: actions/cache@v4
@@ -80,4 +80,3 @@ jobs:
       with:
         name: BiometricFingerprint-IPA
         path: ./bin/*.ipa
-
