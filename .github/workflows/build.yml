@@ -4,107 +4,51 @@ on:
   push:
     branches: [ main ]
 
-jobs:
-  build:
-    runs-on: ubuntu-22.04
+build_ios:
+  runs-on: macos-14
 
-    steps:
-      # Step 1: Checkout code
-      - uses: actions/checkout@v4
+  steps:
+    - uses: actions/checkout@v4
 
-      # Step 2: Fix libtinfo5 issue (Ubuntu 24.04+)
-      - name: Fix libtinfo5 missing error
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libtinfo6
-          sudo ln -sf /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5 || true
+    - name: Set up Python 3.8 
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.8
 
-      # Step 3: Cache Buildozer dependencies
-      - name: Cache Buildozer dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            ~/.gradle
-            ~/.cache/pip
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-buildozer-
+    - name: Install Homebrew, pipx, and Buildozer
+      run: |
+        # Install Homebrew if not already installed
+        if ! which brew > /dev/null; then
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        fi
+        # Install pipx for isolated Python package management
+        brew install pipx
+        # Install Buildozer using pipx
+        pipx install buildozer
 
-      # Step 4: Build APK for Android using Buildozer
-      - name: Build Android APK
-        uses: digreatbrian/buildozer-action@v2
-        with:
-          python-version: 3.8
-          buildozer-cmd: buildozer -v android debug
+    - name: Install distutils (for Python 3.8 on macOS)
+      run: |
+        brew install python@3.8
+        python3.8 -m ensurepip --upgrade
+        python3.8 -m pip install --upgrade pip setuptools
 
-      # Step 5: Upload Android APK as an artifact
-      - name: Upload Android APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: BiometricFingerprint-APK
-          path: ./bin/*.apk
+    - name: Cache Buildozer dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.buildozer
+          ~/.gradle
+          ~/.cache/pip
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-
 
-  build_ios:
-    runs-on: macos-14
+    - name: Build iOS IPA
+      run: |
+        buildozer -v ios debug
 
-    steps:
-      # Step 1: Checkout code
-      - uses: actions/checkout@v4
-
-      # Step 2: Set up Python (Use setup-python action to install the desired version)
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.8
-
-      # Step 3: Install Buildozer dependencies and Python tools
-      - name: Install Homebrew, pipx, and Buildozer
-        run: |
-          # Install Homebrew if not already installed
-          if ! which brew > /dev/null; then
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          fi
-          # Install pipx for managing Python packages in isolated environments
-          brew install pipx
-          # Install Buildozer using pipx
-          pipx install buildozer
-
-      # Step 4: Install distutils to fix missing module error
-      - name: Install distutils
-        run: |
-          python3 -m ensurepip --upgrade
-          python3 -m pip install distutils
-
-      # Step 5: Set up a virtual environment and install dependencies
-      - name: Set up Python virtual environment
-        run: |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install buildozer
-
-      # Step 6: Cache Buildozer dependencies
-      - name: Cache Buildozer dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            ~/.gradle
-            ~/.cache/pip
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-buildozer-
-
-      # Step 7: Build IPA for iOS using Buildozer
-      - name: Build iOS IPA
-        run: |
-          source venv/bin/activate
-          buildozer -v ios debug
-
-      # Step 8: Upload iOS IPA as an artifact
-      - name: Upload iOS IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: BiometricFingerprint-IPA
-          path: ./bin/*.ipa
+    - name: Upload iOS IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: BiometricFingerprint-IPA
+        path: ./bin/*.ipa
