@@ -52,27 +52,31 @@ jobs:
       # Step 1: Checkout code
       - uses: actions/checkout@v4
 
-      # Step 2: Install Homebrew and Buildozer dependencies
-      - name: Install Homebrew and Buildozer dependencies
+      # Step 2: Set up Python (Use setup-python action to install the desired version)
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      # Step 3: Install Buildozer dependencies and Python tools
+      - name: Install Homebrew, pipx, and Buildozer
         run: |
           # Install Homebrew if not already installed
           if ! which brew > /dev/null; then
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
           fi
-          # Install Python 3 if necessary
-          brew install python@3.10
           # Install pipx for managing Python packages in isolated environments
           brew install pipx
-          # Install Buildozer within a pipx environment
+          # Install Buildozer using pipx
           pipx install buildozer
 
-      # Step 3: Install distutils to fix the missing module error
+      # Step 4: Install distutils to fix missing module error
       - name: Install distutils
         run: |
           python3 -m ensurepip --upgrade
           python3 -m pip install distutils
 
-      # Step 4: Set up a virtual environment and install dependencies
+      # Step 5: Set up a virtual environment and install dependencies
       - name: Set up Python virtual environment
         run: |
           python3 -m venv venv
@@ -80,7 +84,7 @@ jobs:
           pip install --upgrade pip
           pip install buildozer
 
-      # Step 5: Cache Buildozer dependencies
+      # Step 6: Cache Buildozer dependencies
       - name: Cache Buildozer dependencies
         uses: actions/cache@v4
         with:
@@ -92,13 +96,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      # Step 6: Build IPA for iOS using Buildozer
+      # Step 7: Build IPA for iOS using Buildozer
       - name: Build iOS IPA
         run: |
           source venv/bin/activate
           buildozer -v ios debug
 
-      # Step 7: Upload iOS IPA as an artifact
+      # Step 8: Upload iOS IPA as an artifact
       - name: Upload iOS IPA
         uses: actions/upload-artifact@v4
         with:
