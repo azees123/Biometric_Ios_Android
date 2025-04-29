@@ -52,15 +52,29 @@ jobs:
       # Step 1: Checkout code
       - uses: actions/checkout@v4
 
-      # Step 2: Install dependencies
+      # Step 2: Install Homebrew and Buildozer dependencies
       - name: Install Homebrew and Buildozer dependencies
         run: |
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          brew install python3
-          python3 -m pip install --upgrade pip
+          # Install Homebrew if not already installed
+          if ! which brew > /dev/null; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+          # Install Python 3 if necessary
+          brew install python@3.10
+          # Install pipx for managing Python packages in isolated environments
+          brew install pipx
+          # Install Buildozer within a pipx environment
+          pipx install buildozer
+
+      # Step 3: Set up a virtual environment and install dependencies
+      - name: Set up Python virtual environment
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
           pip install buildozer
 
-      # Step 3: Cache Buildozer dependencies for iOS build
+      # Step 4: Cache Buildozer dependencies
       - name: Cache Buildozer dependencies
         uses: actions/cache@v4
         with:
@@ -72,12 +86,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildozer-
 
-      # Step 4: Build IPA for iOS using Buildozer
+      # Step 5: Build IPA for iOS using Buildozer
       - name: Build iOS IPA
         run: |
+          source venv/bin/activate
           buildozer -v ios debug
 
-      # Step 5: Upload iOS IPA as an artifact
+      # Step 6: Upload iOS IPA as an artifact
       - name: Upload iOS IPA
         uses: actions/upload-artifact@v4
         with:
