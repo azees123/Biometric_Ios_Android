@@ -55,17 +55,10 @@ jobs:
       with:
         python-version: 3.9
 
-    - name: Install Homebrew, pipx, and Buildozer
+    - name: Install Buildozer in Python 3.9 environment
       run: |
-        # Install Homebrew if not already installed
-        if ! which brew > /dev/null; then
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        fi
-
-        # Install pipx and Buildozer
-        brew install pipx
-        pipx ensurepath
-        pipx install buildozer
+        python3 -m pip install --upgrade pip setuptools
+        python3 -m pip install buildozer
 
     - name: Cache Buildozer dependencies
       uses: actions/cache@v4
@@ -87,3 +80,4 @@ jobs:
       with:
         name: BiometricFingerprint-IPA
         path: ./bin/*.ipa
+
