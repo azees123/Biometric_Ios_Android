@@ -46,50 +46,50 @@ jobs:
           path: ./bin/*.apk
 
   build_ios:
-  runs-on: macos-14
+    runs-on: macos-14
 
-  steps:
-    - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-    - name: Set up Python 3.8 
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.8
+      - name: Set up Python 3.8 
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
 
-    - name: Install Homebrew, pipx, and Buildozer
-      run: |
-        # Install Homebrew if not already installed
-        if ! which brew > /dev/null; then
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        fi
-        # Install pipx for isolated Python package management
-        brew install pipx
-        # Install Buildozer using pipx
-        pipx install buildozer
+      - name: Install Homebrew, pipx, and Buildozer
+        run: |
+          # Install Homebrew if not already installed
+          if ! which brew > /dev/null; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          fi
+          # Install pipx for isolated Python package management
+          brew install pipx
+          # Install Buildozer using pipx
+          pipx install buildozer
 
-    - name: Install distutils (for Python 3.8 on macOS)
-      run: |
-        brew install python@3.8
-        python3.8 -m ensurepip --upgrade
-        python3.8 -m pip install --upgrade pip setuptools
+      - name: Install distutils (for Python 3.8 on macOS)
+        run: |
+          brew install python@3.8
+          python3.8 -m ensurepip --upgrade
+          python3.8 -m pip install --upgrade pip setuptools
 
-    - name: Cache Buildozer dependencies
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.buildozer
-          ~/.gradle
-          ~/.cache/pip
-        key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
-        restore-keys: |
-          ${{ runner.os }}-buildozer-
+      - name: Cache Buildozer dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.gradle
+            ~/.cache/pip
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
 
-    - name: Build iOS IPA
-      run: |
-        buildozer -v ios debug
+      - name: Build iOS IPA
+        run: |
+          buildozer -v ios debug
 
-    - name: Upload iOS IPA
-      uses: actions/upload-artifact@v4
-      with:
-        name: BiometricFingerprint-IPA
-        path: ./bin/*.ipa
+      - name: Upload iOS IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: BiometricFingerprint-IPA
+          path: ./bin/*.ipa
