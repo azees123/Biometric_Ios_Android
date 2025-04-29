@@ -46,7 +46,6 @@ jobs:
           path: ./bin/*.apk
 
   build_ios:
-    # Specify macOS version explicitly (macos-12 in this case)
     runs-on: macos-12
 
     steps:
