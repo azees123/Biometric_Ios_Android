@@ -23,13 +23,13 @@ jobs:
         with:
           python-version: '3.9'
 
-      # Step 3: Free up disk space (optional but recommended)
+      # Step 3: Free up disk space (optional but helpful)
       - name: Free up disk space
         run: |
           sudo rm -rf /Applications/Android\ Studio.app
           sudo rm -rf /Library/Developer/CoreSimulator
 
-      # Step 4: Accept Xcode license and select version
+      # Step 4: Accept Xcode license and select Xcode version
       - name: Accept Xcode license and set path
         run: |
           sudo xcode-select -s /Applications/Xcode.app
@@ -88,14 +88,22 @@ jobs:
           source venv/bin/activate
           buildozer -v ios release 2>&1 | tee build_output.log
 
-      # Step 12: Upload build artifacts (IPA file)
+      # Step 12: List build output to verify .ipa exists
+      - name: List bin/ and build paths
+        run: |
+          echo "=== bin/ directory ==="
+          ls -la bin/
+          echo "=== iOS build directory ==="
+          ls -la .buildozer/ios/platform/ios/build/
+
+      # Step 13: Upload iOS Build Artifacts
       - name: Upload iOS Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: iOS-Build-Files
-          path: ./bin/*.ipa
+          path: '**/*.ipa'
 
-      # Step 13: Upload build logs
+      # Step 14: Upload Build Logs
       - name: Upload Build Log
         uses: actions/upload-artifact@v4
         with:
