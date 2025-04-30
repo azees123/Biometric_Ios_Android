@@ -2,68 +2,55 @@ name: Build iOS App
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build-ios:
+  build:
     runs-on: macos-latest
 
     steps:
-      # Step 1: Checkout repository
-      - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      # Step 2: Set up Python
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.9'
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
 
-      # Step 3: Set up virtual environment and install Buildozer
-      - name: Set up environment and install Buildozer
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip setuptools cython
-          pip install buildozer
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      # Step 4: Install iOS build dependencies
-      - name: Install iOS Build Dependencies
-        run: |
-          brew install autoconf automake libtool pkg-config
+    - name: Install pbxproj (required by kivy-ios)
+      run: |
+        pip install pbxproj
 
-      # Step 5: Cache pip and Buildozer
-      - name: Cache pip and Buildozer
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            ~/.cache/pip
-          key: ${{ runner.os }}-ios-build-${{ hashFiles('**/buildozer.spec') }}
-          restore-keys: |
-            ${{ runner.os }}-ios-build-
+    - name: Install buildozer
+      run: |
+        pip install buildozer
 
-      # Step 6: Prepare buildozer.spec (ensure ios.codesign.allowed)
-      - name: Configure buildozer.spec
-        run: |
-          source venv/bin/activate
-          if [ ! -f buildozer.spec ]; then
-            buildozer init
-          fi
-          sed -i '' 's/^#* *archs *=.*/archs = arm64/' buildozer.spec
-          sed -i '' 's/^#* *ios_min_version *=.*/ios_min_version = 12.0/' buildozer.spec
-          if ! grep -q '^ios.codesign.allowed' buildozer.spec; then
-            echo 'ios.codesign.allowed = 0' >> buildozer.spec
-          fi
+    - name: Install dependencies for kivy-ios
+      run: |
+        brew install libtool
+        brew install automake
+        brew install autoconf
+        brew install pkg-config
+        brew install xz
+        brew install openssl
+        brew install libffi
+        brew install python3
 
-      # Step 7: Build the iOS app
-      - name: Build iOS App (Debug)
-        run: |
-          source venv/bin/activate
-          buildozer -v ios debug
+    - name: Build iOS App with Buildozer
+      run: |
+        buildozer ios debug
 
-      # Step 8: Upload build artifacts
-      - name: Upload iOS Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: iOS-Build-Files
-          path: ./bin/
+    - name: Upload Build Artifacts (if any)
+      uses: actions/upload-artifact@v2
+      with:
+        name: ios-build
+        path: ./bin/*
