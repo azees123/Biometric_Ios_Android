@@ -62,6 +62,8 @@ ios.kivy_ios_branch = master
 # (bool) Automatically create Xcode project (recommended)
 ios.create_xcode_project = True
 
+ios.codesign.allowed = True
+
 # (str) The Apple Team ID
 # You will need to configure this if you're using code-signing
 # ios.codesign.teamid = YOUR_TEAM_ID_HERE
