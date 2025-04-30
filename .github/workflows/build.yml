@@ -12,7 +12,7 @@ jobs:
       # Step 1: Checkout repository
       - uses: actions/checkout@v4
 
-      # Step 2: Set up Python
+      # Step 2: Set up Python 3.9
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -61,13 +61,18 @@ jobs:
             echo 'ios.codesign.allowed = 0' >> buildozer.spec
           fi
 
-      # Step 8: Build the iOS app
-      - name: Build iOS App (Debug)
+      # Step 8: Clean Build (Optional but recommended)
+      - name: Clean Build
+        run: |
+          rm -rf .buildozer
+
+      # Step 9: Build the iOS app (Release)
+      - name: Build iOS App (Release)
         run: |
           source venv/bin/activate
-          buildozer -v ios debug
+          buildozer -v ios release
 
-      # Step 9: Upload build artifacts
+      # Step 10: Upload build artifacts
       - name: Upload iOS Build Artifacts
         uses: actions/upload-artifact@v4
         with:
