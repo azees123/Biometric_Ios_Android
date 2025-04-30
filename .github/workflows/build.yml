@@ -12,13 +12,13 @@ jobs:
       # Step 1: Checkout the repository
       - uses: actions/checkout@v4
 
-      # Step 2: Set up Python
+      # Step 2: Set up Python (consider using 3.9 for better compatibility)
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
-      # Step 3: Set up Python Virtual Environment (optional but recommended)
+      # Step 3: Set up Python Virtual Environment
       - name: Set up Virtual Environment
         run: |
           python -m venv venv
@@ -32,8 +32,8 @@ jobs:
           source venv/bin/activate
           pip install buildozer pbxproj
 
-      # Step 5: Cache Buildozer and pip
-      - name: Cache Buildozer
+      # Step 5: Cache Buildozer settings and pip downloads
+      - name: Cache Buildozer and pip
         uses: actions/cache@v4
         with:
           path: |
@@ -43,26 +43,35 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ios-build-
 
-      # Step 6: Ensure buildozer.spec exists
+      # Step 6: Cache kivy-ios and hostpython3 builds
+      - name: Cache Kivy iOS Build Environment
+        uses: actions/cache@v4
+        with:
+          path: .buildozer/ios/platform/kivy-ios
+          key: ${{ runner.os }}-kivy-ios-${{ hashFiles('**/buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-kivy-ios-
+
+      # Step 7: Ensure buildozer.spec exists
       - name: Ensure buildozer.spec exists
         run: |
           source venv/bin/activate
           test -f buildozer.spec || buildozer init
 
-      # Step 7: Build the iOS app (debug)
+      # Step 8: Build the iOS app (debug)
       - name: Build iOS Debug App
         run: |
           source venv/bin/activate
           buildozer -v ios debug
 
-      # Step 8: Upload built app artifacts
+      # Step 9: Upload built app artifacts
       - name: Upload iOS Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: iOS-Build-Files
           path: ./bin/
 
-      # Step 9: Output Buildozer Logs on Failure
+      # Step 10: Output Buildozer Logs on Failure
       - name: Output Buildozer Logs on Failure
         if: failure()
         run: cat ~/.buildozer/*.log || true
