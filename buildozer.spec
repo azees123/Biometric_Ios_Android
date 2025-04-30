@@ -362,28 +362,27 @@ use_sqlite3 = True
 #
 # iOS specific
 #
-# (bool) Whether or not to sign the code
-ios.codesign.allowed = 0
+[ios]
+# Specify the supported architecture and the minimum iOS version.
+archs = arm64
+ios.min_version = 12.0
 
-# (str) Path to a custom kivy-ios folder
-#ios.kivy_ios_dir = ../kivy-ios
-# Alternately, specify the URL and branch of a git checkout:
+# Create the Xcode project upon build (this should be enabled for iOS).
+ios.create_xcode_project = 1
+
+# Define necessary permissions (camera in this case).
+ios.permissions = camera
+
+# Kivy-iOS repo URL and branch (you might want to use a specific branch if you have a custom one).
 ios.kivy_ios_url = https://github.com/kivy/kivy-ios
 ios.kivy_ios_branch = master
 
-[ios]
-archs = arm64
-
-ios.min_version = 12.0
-ios.create_xcode_project = 1
-ios.permissions = camera
-
-# Another platform dependency: ios-deploy
-# Uncomment to use a custom checkout
-#ios.ios_deploy_dir = ../ios_deploy
-# Or specify URL and branch
+# Define the iOS deploy repo if you need a custom version.
 ios.ios_deploy_url = https://github.com/phonegap/ios-deploy
 ios.ios_deploy_branch = 1.10.0
+
+# Allow or disallow code signing (you may want to set it to 1 if you want code signing).
+ios.codesign.allowed = 0
 
 # (str) Name of the certificate to use for signing the debug version
 # Get a list of available identities: buildozer ios list_identities
