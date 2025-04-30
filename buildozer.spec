@@ -357,7 +357,7 @@ use_sqlite3 = True
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
 #p4a.extra_args =
 
-
+ios.codesign.allowed = 0
 
 #
 # iOS specific
@@ -382,7 +382,7 @@ ios.ios_deploy_url = https://github.com/phonegap/ios-deploy
 ios.ios_deploy_branch = 1.10.0
 
 # Allow or disallow code signing (you may want to set it to 1 if you want code signing).
-ios.codesign.allowed = 0
+#ios.codesign.allowed = 0
 
 # (str) Name of the certificate to use for signing the debug version
 # Get a list of available identities: buildozer ios list_identities
