@@ -24,86 +24,50 @@ version = 1.0
 # (str) Supported orientation (portrait, landscape, all)
 orientation = portrait
 
-# (list) List of service to declare
-services =
-
 # (str) Icon of the application
 icon.filename = %(source.dir)s/icon.png
 
-# (str) Supported platforms
-# Change this to just `ios` for iOS support
+# (str) Supported platforms (Only iOS)
+# Set the target platform to `ios` to ensure it's iOS-only
 target = ios
 
 # (str) Minimum iOS version supported
 ios.min_version = 12.0
 
-# (str) iOS status bar style
-ios.statusbarstyle = UIStatusBarStyleLightContent
-
-# (bool) Hide the status bar
+# (bool) Hide the status bar on iOS
 fullscreen = 1
 
-# (str) Supported architectures for iOS: "arm64"
+# (str) Supported architectures for iOS (arm64 is required for iOS builds)
 ios.archs = arm64
 
 # (bool) Whether or not to include a launcher icon
 include_launcher_icon = True
 
-# (list) Permissions
-# No Android-specific permissions needed
-android.permissions =
-
 # (list) Dependencies required by your app
 requirements = python3,kivy,pillow
 
 # (str) Custom source folders for requirements
-# (e.g. custom source for `pygame`)
-# requirements.source =
-
-# (list) Garden requirements
-# garden_requirements =
-
-# (str) Custom Java namespace (Not used for iOS)
-# android.add_jars =
+# If you have custom requirements, you can specify the source here
 
 # (bool) Use --private data storage (needed for iOS sandbox rules)
 use_private_storage = 1
 
 # (str) Presplash screen of the application
-# presplash.filename = %(source.dir)s/data/presplash.png
+# If you have a presplash screen, specify it here
 
 # (str) The format used to package the app for iOS
-# Available options: app, xcode
 ios.kivy_ios_url = https://github.com/kivy/kivy-ios
 ios.kivy_ios_branch = master
-
-# (str) Custom plist for iOS
-#ios.custom_plist = %(source.dir)s/custom.plist
-
-# (str) The Apple Team ID
-#ios.codesign.teamid = YOUR_TEAM_ID_HERE
-
-# (str) The provisioning profile name (must match your Apple Developer account)
-#ios.codesign.provisioning_profile = YOUR_PROFILE_NAME_HERE
-
-# (str) The development certificate identity
-ios.codesign.development = iPhone Developer
-
-# (str) The app store certificate identity
-# ios.codesign.release = iPhone Distribution
-
-# (str) iOS deployment target version
-ios.deployment_target = 12.0
 
 # (bool) Automatically create Xcode project (recommended)
 ios.create_xcode_project = True
 
-# (bool) Sign the app when building
-ios.codesign = True
+# (str) The Apple Team ID
+# You will need to configure this if you're using code-signing
+# ios.codesign.teamid = YOUR_TEAM_ID_HERE
 
-# (list) Environment variables for iOS
-ios.env =
+# (bool) Sign the app when building (this is only relevant for signed builds)
+# ios.codesign = True
 
-# Add the missing line for code signing allowance
-ios.codesign.allowed = True
-
+# (str) iOS deployment target version
+ios.deployment_target = 12.0
