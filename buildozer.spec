@@ -383,7 +383,6 @@ ios.permissions = camera
 ios.ios_deploy_url = https://github.com/phonegap/ios-deploy
 ios.ios_deploy_branch = 1.10.0
 
-[app]
 # (bool) Whether or not to sign the code
 ios.codesign.allowed = 0
 
