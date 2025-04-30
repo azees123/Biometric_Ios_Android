@@ -369,6 +369,9 @@ use_sqlite3 = True
 ios.kivy_ios_url = https://github.com/kivy/kivy-ios
 ios.kivy_ios_branch = master
 
+[ios]
+archs = arm64
+
 ios.min_version = 12.0
 ios.create_xcode_project = 1
 ios.permissions = camera
