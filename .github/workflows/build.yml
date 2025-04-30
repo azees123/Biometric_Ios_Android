@@ -9,7 +9,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # Step 1: Checkout the repository
+      # Step 1: Checkout repository
       - uses: actions/checkout@v4
 
       # Step 2: Set up Python
@@ -18,26 +18,21 @@ jobs:
         with:
           python-version: '3.9'
 
-      # Step 3: Set up Python virtual environment
-      - name: Set up Virtual Environment
+      # Step 3: Set up virtual environment and install Buildozer
+      - name: Set up environment and install Buildozer
         run: |
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip setuptools cython
+          pip install buildozer
 
-      # Step 4: Set correct Xcode version
-      - name: Set Xcode Version
-        run: sudo xcode-select -s /Applications/Xcode_15.4.app
-
-      # Step 5: Install iOS build dependencies
-      - name: Install Build Tools
+      # Step 4: Install iOS build dependencies
+      - name: Install iOS Build Dependencies
         run: |
-          brew install autoconf automake libtool pkg-config ios-deploy
-          source venv/bin/activate
-          pip install buildozer pbxproj
+          brew install autoconf automake libtool pkg-config
 
-      # Step 6: Cache Buildozer and pip
-      - name: Cache Buildozer
+      # Step 5: Cache pip and Buildozer
+      - name: Cache pip and Buildozer
         uses: actions/cache@v4
         with:
           path: |
@@ -47,8 +42,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ios-build-
 
-      # Step 7: Ensure buildozer.spec exists and set archs = arm64
-      - name: Generate and Update buildozer.spec
+      # Step 6: Prepare buildozer.spec (ensure ios.codesign.allowed)
+      - name: Configure buildozer.spec
         run: |
           source venv/bin/activate
           if [ ! -f buildozer.spec ]; then
@@ -56,21 +51,19 @@ jobs:
           fi
           sed -i '' 's/^#* *archs *=.*/archs = arm64/' buildozer.spec
           sed -i '' 's/^#* *ios_min_version *=.*/ios_min_version = 12.0/' buildozer.spec
+          if ! grep -q '^ios.codesign.allowed' buildozer.spec; then
+            echo 'ios.codesign.allowed = 0' >> buildozer.spec
+          fi
 
-      # Step 8: Build iOS debug app
-      - name: Build iOS Debug App
+      # Step 7: Build the iOS app
+      - name: Build iOS App (Debug)
         run: |
           source venv/bin/activate
           buildozer -v ios debug
 
-      # Step 9: Upload built app artifacts
+      # Step 8: Upload build artifacts
       - name: Upload iOS Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: iOS-Build-Files
           path: ./bin/
-
-      # Step 10: Print logs on failure
-      - name: Print Buildozer Logs if Failed
-        if: failure()
-        run: cat ~/.buildozer/*.log || true
