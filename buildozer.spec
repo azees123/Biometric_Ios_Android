@@ -41,7 +41,7 @@ ios.min_version = 12.0
 ios.statusbarstyle = UIStatusBarStyleLightContent
 
 # (bool) Hide the status bar
-fullscreen = 1  # Keep only this line
+fullscreen = 1
 
 # (str) Supported architectures for iOS: "arm64"
 ios.archs = arm64
@@ -81,10 +81,10 @@ ios.kivy_ios_branch = master
 #ios.custom_plist = %(source.dir)s/custom.plist
 
 # (str) The Apple Team ID
-ios.codesign.teamid = YOUR_TEAM_ID_HERE
+#ios.codesign.teamid = YOUR_TEAM_ID_HERE
 
 # (str) The provisioning profile name (must match your Apple Developer account)
-ios.codesign.provisioning_profile = YOUR_PROFILE_NAME_HERE
+#ios.codesign.provisioning_profile = YOUR_PROFILE_NAME_HERE
 
 # (str) The development certificate identity
 ios.codesign.development = iPhone Developer
@@ -104,21 +104,6 @@ ios.codesign = True
 # (list) Environment variables for iOS
 ios.env =
 
-[buildozer]
+# Add the missing line for code signing allowance
+ios.codesign.allowed = True
 
-# (str) Buildozer log level (0 = error only, 1 = normal, 2 = verbose, 3 = debug)
-log_level = 2
-
-# (bool) Whether to clean before building
-clean = False
-
-# (str) Where to store the .buildozer dir
-build_dir = .buildozer
-
-# (str) Path to Xcode project (auto-handled if `ios.create_xcode_project` = True)
-ios.xcode_project_path =
-
-# ------------------------------------------------------------------------------ 
-# Optional iOS extras (leave as is if unsure)
-# ------------------------------------------------------------------------------ 
-ios.no_opengl_headers = False
