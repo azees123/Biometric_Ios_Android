@@ -1,95 +1,49 @@
-name: Build Android and iOS APK & IPA
+name: Build iOS App
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  android_build:
-    runs-on: ubuntu-22.04
+  build-ios:
+    runs-on: macos-latest
 
     steps:
-      # Step 1: Checkout code
+      # Step 1: Checkout the repository
       - uses: actions/checkout@v4
 
-      # Step 2: Fix libtinfo5 missing error for Ubuntu 24.04+
-      - name: Fix libtinfo5 missing error
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libtinfo6
-          sudo ln -sf /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.5 || true
+      # Step 2: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.8'
 
-      # Step 3: Cache Buildozer dependencies
-      - name: Cache Buildozer dependencies
+      # Step 3: Install dependencies
+      - name: Install Buildozer and dependencies
+        run: |
+          brew install pkg-config
+          pip install --upgrade pip setuptools cython
+          pip install buildozer
+
+      # Step 4: Cache pip and buildozer
+      - name: Cache Buildozer
         uses: actions/cache@v4
         with:
           path: |
             ~/.buildozer
-            ~/.gradle
             ~/.cache/pip
-          key: ${{ runner.os }}-buildozer-${{ hashFiles('**/buildozer.spec') }}
+          key: ${{ runner.os }}-ios-build-${{ hashFiles('**/buildozer.spec') }}
           restore-keys: |
-            ${{ runner.os }}-buildozer-
+            ${{ runner.os }}-ios-build-
 
-      # Step 4: Build Android APK using Buildozer
-      - name: Build Android APK
-        uses: digreatbrian/buildozer-action@v2
-        with:
-          python-version: 3.8
-          buildozer-cmd: buildozer -v android debug
+      # Step 5: Build the iOS app
+      - name: Build iOS Debug App
+        run: |
+          buildozer -v ios debug
 
-      # Step 5: Upload Android APK as an artifact
-      - name: Upload Android APK
+      # Optional: Upload build artifacts (e.g., Xcode project or .ipa)
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: BiometricFingerprint-APK
-          path: ./bin/*.apk
-
-  ios_build:
-      runs-on: macos-latest
-
-      steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9
-
-      - name: Cache buildozer directory
-        uses: actions/cache@v4
-        with:
-          path: |
-            .buildozer
-            ~/.cache/pip
-          key: buildozer-${{ runner.os }}-${{ hashFiles('**/buildozer.spec') }}
-          restore-keys: |
-            buildozer-${{ runner.os }}-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install cython
-          pip install buildozer kivy
-          pip install pbxproj
-          brew install autoconf automake
-
-      - name: Prevent timeout during long build (keep-alive)
-        run: |
-          echo "Starting long build with keep-alive..."
-          while true; do echo "Still building..."; sleep 60; done &
-          KEEPALIVE_PID=$!
-          buildozer ios debug || BUILD_RESULT=$?
-          kill $KEEPALIVE_PID
-          exit $BUILD_RESULT
-
-      - name: Upload iOS IPA as an artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: BiometricFingerprint-IPA
-          path: ./bin/*.ipa
-
-      - name: Clean up (optional)
-        run: buildozer ios clean
-
+          name: iOS-Build-Files
+          path: ./bin/
