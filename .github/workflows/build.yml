@@ -2,7 +2,11 @@ name: Build iOS App
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build-ios:
@@ -10,16 +14,17 @@ jobs:
 
     steps:
       # Step 1: Checkout repository
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       # Step 2: Set up Python 3.9
-      - name: Set up Python
+      - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
       # Step 3: Set up virtual environment and install Buildozer
-      - name: Set up environment and install Buildozer
+      - name: Set up virtual environment and install Buildozer
         run: |
           python -m venv venv
           source venv/bin/activate
@@ -37,7 +42,7 @@ jobs:
           source venv/bin/activate
           pip install pbxproj
 
-      # Step 6: Cache pip and Buildozer
+      # Step 6: Cache pip and Buildozer dependencies
       - name: Cache pip and Buildozer
         uses: actions/cache@v4
         with:
@@ -48,41 +53,32 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ios-build-
 
-      # Step 7: Configure buildozer.spec (without code-signing)
-      - name: Configure buildozer.spec
+      # Step 7: Configure buildozer.spec (only for iOS)
+      - name: Configure buildozer.spec for iOS
         run: |
           source venv/bin/activate
           if [ ! -f buildozer.spec ]; then
             buildozer init
           fi
+          sed -i '' 's/^#* *target *=.*/target = ios/' buildozer.spec
           sed -i '' 's/^#* *archs *=.*/archs = arm64/' buildozer.spec
           sed -i '' 's/^#* *ios_min_version *=.*/ios_min_version = 12.0/' buildozer.spec
-          # We are not adding the code-signing lines here.
+          # Ensure no Android build (skip Android related settings)
 
       # Step 8: Clean Build (Optional but recommended)
-      - name: Clean Build
+      - name: Clean previous builds
         run: |
           rm -rf .buildozer
 
-      # Step 9: Set up code-signing certificates (using GitHub secrets)
-      - name: Set up code signing
-        run: |
-          echo "${{ secrets.APPLE_CERTIFICATE }}" > apple_certificate.p12
-          echo "${{ secrets.APPLE_PROVISIONING_PROFILE }}" > provisioning_profile.mobileprovision
-          security create-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} build.keychain
-          security import apple_certificate.p12 -k build.keychain -P ${{ secrets.CERTIFICATE_PASSWORD }} -T /usr/bin/codesign
-          security set-keychain-settings -lut 7200 build.keychain
-          security list-keychains -s build.keychain
-
-      # Step 10: Build the iOS app (Release)
+      # Step 9: Build the iOS app (Release)
       - name: Build iOS App (Release)
         run: |
           source venv/bin/activate
           buildozer -v ios release
 
-      # Step 11: Upload build artifacts
+      # Step 10: Upload build artifacts (IPA file)
       - name: Upload iOS Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: iOS-Build-Files
-          path: ./bin/
+          path: ./bin/*.ipa
