@@ -370,7 +370,6 @@ ios.kivy_ios_url = https://github.com/kivy/kivy-ios
 ios.kivy_ios_branch = master
 
 ios.min_version = 12.0
-ios.archs = arm64
 ios.create_xcode_project = 1
 ios.permissions = camera
 
