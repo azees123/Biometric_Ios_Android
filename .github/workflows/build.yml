@@ -48,7 +48,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ios-build-
 
-      # Step 7: Configure buildozer.spec
+      # Step 7: Configure buildozer.spec (without code-signing)
       - name: Configure buildozer.spec
         run: |
           source venv/bin/activate
@@ -57,22 +57,30 @@ jobs:
           fi
           sed -i '' 's/^#* *archs *=.*/archs = arm64/' buildozer.spec
           sed -i '' 's/^#* *ios_min_version *=.*/ios_min_version = 12.0/' buildozer.spec
-          if ! grep -q '^ios.codesign.allowed' buildozer.spec; then
-            echo 'ios.codesign.allowed = 0' >> buildozer.spec
-          fi
+          # We are not adding the code-signing lines here.
 
       # Step 8: Clean Build (Optional but recommended)
       - name: Clean Build
         run: |
           rm -rf .buildozer
 
-      # Step 9: Build the iOS app (Release)
+      # Step 9: Set up code-signing certificates (using GitHub secrets)
+      - name: Set up code signing
+        run: |
+          echo "${{ secrets.APPLE_CERTIFICATE }}" > apple_certificate.p12
+          echo "${{ secrets.APPLE_PROVISIONING_PROFILE }}" > provisioning_profile.mobileprovision
+          security create-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} build.keychain
+          security import apple_certificate.p12 -k build.keychain -P ${{ secrets.CERTIFICATE_PASSWORD }} -T /usr/bin/codesign
+          security set-keychain-settings -lut 7200 build.keychain
+          security list-keychains -s build.keychain
+
+      # Step 10: Build the iOS app (Release)
       - name: Build iOS App (Release)
         run: |
           source venv/bin/activate
           buildozer -v ios release
 
-      # Step 10: Upload build artifacts
+      # Step 11: Upload build artifacts
       - name: Upload iOS Build Artifacts
         uses: actions/upload-artifact@v4
         with:
