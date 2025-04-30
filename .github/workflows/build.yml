@@ -23,7 +23,19 @@ jobs:
         with:
           python-version: '3.9'
 
-      # Step 3: Set up virtual environment and install Buildozer
+      # Step 3: Free up disk space (optional but recommended)
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /Applications/Android\ Studio.app
+          sudo rm -rf /Library/Developer/CoreSimulator
+
+      # Step 4: Accept Xcode license and select version
+      - name: Accept Xcode license and set path
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app
+          sudo xcodebuild -license accept
+
+      # Step 5: Set up virtual environment and install Buildozer
       - name: Set up virtual environment and install Buildozer
         run: |
           python -m venv venv
@@ -31,18 +43,18 @@ jobs:
           pip install --upgrade pip setuptools cython
           pip install buildozer
 
-      # Step 4: Install iOS build dependencies
+      # Step 6: Install iOS build dependencies
       - name: Install iOS Build Dependencies
         run: |
           brew install autoconf automake libtool pkg-config
 
-      # Step 5: Install pbxproj module
+      # Step 7: Install pbxproj module
       - name: Install pbxproj module
         run: |
           source venv/bin/activate
           pip install pbxproj
 
-      # Step 6: Cache pip and Buildozer dependencies
+      # Step 8: Cache pip and Buildozer dependencies
       - name: Cache pip and Buildozer
         uses: actions/cache@v4
         with:
@@ -53,7 +65,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ios-build-
 
-      # Step 7: Configure buildozer.spec (only for iOS)
+      # Step 9: Configure buildozer.spec for iOS
       - name: Configure buildozer.spec for iOS
         run: |
           source venv/bin/activate
@@ -63,22 +75,29 @@ jobs:
           sed -i '' 's/^#* *target *=.*/target = ios/' buildozer.spec
           sed -i '' 's/^#* *archs *=.*/archs = arm64/' buildozer.spec
           sed -i '' 's/^#* *ios_min_version *=.*/ios_min_version = 12.0/' buildozer.spec
-          # Ensure no Android build (skip Android related settings)
+          sed -i '' 's/^#* *requirements *=.*/requirements = python3,kivy/' buildozer.spec
 
-      # Step 8: Clean Build (Optional but recommended)
+      # Step 10: Clean previous builds
       - name: Clean previous builds
         run: |
           rm -rf .buildozer
 
-      # Step 9: Build the iOS app (Release)
+      # Step 11: Build the iOS app (Release)
       - name: Build iOS App (Release)
         run: |
           source venv/bin/activate
-          buildozer -v ios release
+          buildozer -v ios release 2>&1 | tee build_output.log
 
-      # Step 10: Upload build artifacts (IPA file)
+      # Step 12: Upload build artifacts (IPA file)
       - name: Upload iOS Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: iOS-Build-Files
           path: ./bin/*.ipa
+
+      # Step 13: Upload build logs
+      - name: Upload Build Log
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build_output.log
