@@ -1,73 +1,84 @@
-[app]
+name: Build iOS App
 
-# (str) Title of your application
-title = FingerprintAuth
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-# (str) Package name
-package.name = fingerprintauth
+jobs:
+  build-ios:
+    runs-on: macos-latest
 
-# (str) Package domain (must be a valid domain name)
-package.domain = org.example
+    steps:
+      # Step 1: Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-# (str) Source code where main.py is located
-source.dir = .
+      # Step 2: Set up Python 3.9
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
 
-# (str) Application entry point
-source.main = main.py
+      # Step 3: Set up virtual environment and install Buildozer
+      - name: Set up virtual environment and install Buildozer
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip setuptools cython
+          pip install buildozer
 
-# (list) List of inclusions using pattern matching
-source.include_exts = py,png,jpg,kv,atlas
+      # Step 4: Install iOS build dependencies
+      - name: Install iOS Build Dependencies
+        run: |
+          brew install autoconf automake libtool pkg-config
 
-# (str) Application versioning (method 1)
-version = 1.0
+      # Step 5: Install pbxproj module
+      - name: Install pbxproj module
+        run: |
+          source venv/bin/activate
+          pip install pbxproj
 
-# (str) Supported orientation (portrait, landscape, all)
-orientation = portrait
+      # Step 6: Cache pip and Buildozer dependencies
+      - name: Cache pip and Buildozer
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.cache/pip
+          key: ${{ runner.os }}-ios-build-${{ hashFiles('**/buildozer.spec') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-build-
 
-# (str) Icon of the application
-icon.filename = %(source.dir)s/icon.png
+      # Step 7: Configure buildozer.spec (only for iOS)
+      - name: Configure buildozer.spec for iOS
+        run: |
+          source venv/bin/activate
+          if [ ! -f buildozer.spec ]; then
+            buildozer init
+          fi
+          sed -i '' 's/^#* *target *=.*/target = ios/' buildozer.spec
+          sed -i '' 's/^#* *archs *=.*/archs = arm64/' buildozer.spec
+          sed -i '' 's/^#* *ios_min_version *=.*/ios_min_version = 12.0/' buildozer.spec
+          # Ensure no Android build (skip Android related settings)
 
-# (str) Supported platforms (Only iOS)
-# Set the target platform to `ios` to ensure it's iOS-only
-target = ios
+      # Step 8: Clean Build (Optional but recommended)
+      - name: Clean previous builds
+        run: |
+          rm -rf .buildozer
 
-# (str) Minimum iOS version supported
-ios.min_version = 12.0
+      # Step 9: Build the iOS app (Release)
+      - name: Build iOS App (Release)
+        run: |
+          source venv/bin/activate
+          buildozer -v ios release
 
-# (bool) Hide the status bar on iOS
-fullscreen = 1
-
-# (str) Supported architectures for iOS (arm64 is required for iOS builds)
-ios.archs = arm64
-
-# (bool) Whether or not to include a launcher icon
-include_launcher_icon = True
-
-# (list) Dependencies required by your app
-requirements = python3,kivy,pillow
-
-# (str) Custom source folders for requirements
-# If you have custom requirements, you can specify the source here
-
-# (bool) Use --private data storage (needed for iOS sandbox rules)
-use_private_storage = 1
-
-# (str) Presplash screen of the application
-# If you have a presplash screen, specify it here
-
-# (str) The format used to package the app for iOS
-ios.kivy_ios_url = https://github.com/kivy/kivy-ios
-ios.kivy_ios_branch = master
-
-# (bool) Automatically create Xcode project (recommended)
-ios.create_xcode_project = True
-
-# (str) The Apple Team ID
-# You will need to configure this if you're using code-signing
-# ios.codesign.teamid = YOUR_TEAM_ID_HERE
-
-# (bool) Sign the app when building (this is only relevant for signed builds)
-# ios.codesign = True
-
-# (str) iOS deployment target version
-ios.deployment_target = 12.0
+      # Step 10: Upload build artifacts (IPA file)
+      - name: Upload iOS Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: iOS-Build-Files
+          path: ./bin/*.ipa
