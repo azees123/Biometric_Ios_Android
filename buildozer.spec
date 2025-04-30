@@ -41,13 +41,10 @@ ios.min_version = 12.0
 ios.statusbarstyle = UIStatusBarStyleLightContent
 
 # (bool) Hide the status bar
-fullscreen = 1
+fullscreen = 1  # Keep only this line
 
 # (str) Supported architectures for iOS: "arm64"
 ios.archs = arm64
-
-# (bool) Indicate if the application should be fullscreen or not
-fullscreen = 1
 
 # (bool) Whether or not to include a launcher icon
 include_launcher_icon = True
@@ -121,7 +118,7 @@ build_dir = .buildozer
 # (str) Path to Xcode project (auto-handled if `ios.create_xcode_project` = True)
 ios.xcode_project_path =
 
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------ 
 # Optional iOS extras (leave as is if unsure)
-# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------ 
 ios.no_opengl_headers = False
